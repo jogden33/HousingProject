@@ -17,7 +17,7 @@ USE housing_project;
 CREATE TABLE housing
                (
                 `id`                 int not null auto_increment primary key,
-                `guid`               char(32) not null,
+                `guid`               char(40) not null,
                 `zip_code`           int not null,
                 `city`               char(32) not null,
                 `state`              char(2) not null,
