@@ -92,8 +92,8 @@ HousingData = HousingZipIncome2[['id','guid','zip_code', 'city','state','county'
 # STEP 6: Import data into our SQL database, housing_project.
 # Using SQLAlchemy create an engine and load data into the table, 'housing'
 
-#engine = create_engine('mysql+pymysql://root:XXXXX@localhost/housing_project')
-#HousingData.to_sql('housing', engine, if_exists = 'append', index = False)
+engine = create_engine('mysql+pymysql://root:XXXXX@localhost/housing_project')
+HousingData.to_sql('housing', engine, if_exists = 'append', index = False)
 print("Import completed")
 print()
 
