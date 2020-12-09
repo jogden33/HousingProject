@@ -89,8 +89,14 @@ HousingData = HousingZipIncome2[['id','guid','zip_code', 'city','state','county'
 
 # STEP 6: Import data into our SQL database, housing_project.
 # Using SQLAlchemy create an engine and load data into the table, 'housing'
-engine = create_engine('mysql+pymysql://root:XXXXX@localhost/housing_project')
-HousingData.to_sql('housing', engine, if_exists = 'append', index = False)
+try:
+    engine = create_engine('mysql+pymysql://root:XXXXX@localhost/housing_project')
+    HousingData.to_sql('housing', engine, if_exists = 'append', index = False)
+
+except Exception as e:
+    print(f"There was an error in the connection. Exiting.")
+    print(e)
+
 print("Import completed")
 print()
 
@@ -100,21 +106,26 @@ print("Beginning validation")
 print()
 TotalRooms = int(input(f"Total Rooms: "))
 
-myConnection = pymysql.connect(host='localhost',
-                               user='root',
-                               password='XXXXX',
-                               db='housing_project',
-                               charset='utf8mb4')
+try:
+    myConnection = pymysql.connect(host='localhost',
+                                   user='root',
+                                   password='XXXXX',
+                                   db='housing_project',
+                                   charset='utf8mb4')
 
-cursor = myConnection.cursor()
-roomSQL = """select sum(total_bedrooms)
+    cursor = myConnection.cursor()
+    roomSQL = """select sum(total_bedrooms)
                  from housing
                  where total_rooms > %s
               """
-cursor.execute(roomSQL, TotalRooms)
-RoomResults = cursor.fetchall()
-cursor.close()
-myConnection.close()
+    cursor.execute(roomSQL, TotalRooms)
+    RoomResults = cursor.fetchall()
+    cursor.close()
+    myConnection.close()
+
+except Exception as e:
+    print(f"There was an error in the connection. Exiting.")
+    print(e)
 
 print(f"For locations with more than {TotalRooms} rooms, there are a total of {RoomResults[0][0]:,} bedrooms.")
 
@@ -122,21 +133,26 @@ print(f"For locations with more than {TotalRooms} rooms, there are a total of {R
 print()
 ZIPCode = int(input(f"ZIP Code: "))
 
-myConnection = pymysql.connect(host='localhost',
-                               user='root',
-                               password='XXXXX',
-                               db='housing_project',
-                               charset='utf8mb4')
+try:
+    myConnection = pymysql.connect(host='localhost',
+                                   user='root',
+                                   password='XXXXX',
+                                   db='housing_project',
+                                   charset='utf8mb4')
 
-cursor = myConnection.cursor()
-incomeSQL = """select format(round(avg(median_income)),0)
-                 from housing
-                 where zip_code = %s
-              """
-cursor.execute(incomeSQL, ZIPCode)
-ZIPResults = cursor.fetchall()
-cursor.close()
-myConnection.close()
+    cursor = myConnection.cursor()
+    incomeSQL = """select format(round(avg(median_income)),0)
+                     from housing
+                     where zip_code = %s
+                  """
+    cursor.execute(incomeSQL, ZIPCode)
+    ZIPResults = cursor.fetchall()
+    cursor.close()
+    myConnection.close()
+
+except Exception as e:
+    print(f"There was an error in the connection. Exiting.")
+    print(e)
 
 print(f"The median household income for ZIP code {ZIPCode} is {ZIPResults[0][0]}.")
 print()
