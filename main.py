@@ -15,9 +15,9 @@ print(f"Beginning import")
 # STEP 1: Clean the Housing File Data
 print(f"Cleaning Housing File data")
 
-# Replace corrupted data with NaN (missing values) and drop any NaN's in the variable guid
-Housing.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
-Housing.dropna(axis = 0, subset = ['guid'], inplace = True)
+# Replace any corrupted data with NaN (missing values) and drop any NaN's in the variable guid
+housingFile.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
+housingFile.dropna(axis = 0, subset = ['guid'], inplace = True)
 
 # Impute the following variables:
     # housing_median_age --> Random integer between 10 and 50
@@ -27,58 +27,56 @@ Housing.dropna(axis = 0, subset = ['guid'], inplace = True)
     # households --> Random integer between 500 and 2,500
     # median_house_value --> Random integer between 100,000 and 250,000
 
-Housing.loc[Housing['housing_median_age'].isnull(), 'housing_median_age'] = Housing['housing_median_age'].apply(lambda v: np.random.randint(10,50))
-Housing.loc[Housing['total_rooms'].isnull(), 'total_rooms'] = Housing['total_rooms'].apply(lambda v: np.random.randint(1000, 2000))
-Housing.loc[Housing['total_bedrooms'].isnull(), 'total_bedrooms'] = Housing['total_bedrooms'].apply(lambda v: np.random.randint(1000,2000))
-Housing.loc[Housing['population'].isnull(), 'population'] = Housing['population'].apply(lambda v: np.random.randint(5000, 10000))
-Housing.loc[Housing['households'].isnull(), 'households'] = Housing['households'].apply(lambda v: np.random.randint(500, 2500))
-Housing.loc[Housing['median_house_value'].isnull(), 'median_house_value'] = Housing['median_house_value'].apply(lambda v: np.random.randint(100000, 250000))
+housingFile.loc[housingFile['housing_median_age'].isnull(), 'housing_median_age'] = housingFile['housing_median_age'].apply(lambda v: np.random.randint(10,50))
+housingFile.loc[housingFile['total_rooms'].isnull(), 'total_rooms'] = housingFile['total_rooms'].apply(lambda v: np.random.randint(1000, 2000))
+housingFile.loc[housingFile['total_bedrooms'].isnull(), 'total_bedrooms'] = housingFile['total_bedrooms'].apply(lambda v: np.random.randint(1000,2000))
+housingFile.loc[housingFile['population'].isnull(), 'population'] = housingFile['population'].apply(lambda v: np.random.randint(5000, 10000))
+housingFile.loc[housingFile['households'].isnull(), 'households'] = housingFile['households'].apply(lambda v: np.random.randint(500, 2500))
+housingFile.loc[housingFile['median_house_value'].isnull(), 'median_house_value'] = housingFile['median_house_value'].apply(lambda v: np.random.randint(100000, 250000))
 
-print(f"{len(Housing.index)} records imported into the database")
+print(f"{len(housingFile.index)} records imported into the database")
 
 # STEP 2: Clean the Income File Data
 print(f"Cleaning Income File data")
 
 # Replace corrupted data with NaN (missing values) and drop any NaN's in the variable guid
-Income.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
-Income.dropna(axis = 0, subset = ['guid'], inplace = True)
+incomeFile.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
+incomeFile.dropna(axis = 0, subset = ['guid'], inplace = True)
 
 # Replace the variable, median_income, with a random integer between 100,000 and 750,000
-Income.loc[Income['median_income'].isnull(), 'median_income'] = Income['median_income'].apply(lambda v: np.random.randint(100000, 750000))
+incomeFile.loc[incomeFile['median_income'].isnull(), 'median_income'] = incomeFile['median_income'].apply(lambda v: np.random.randint(100000, 750000))
 
-print(f"{len(Income.index)} records imported into the database")
+print(f"{len(incomeFile.index)} records imported into the database")
 
 # STEP 3: Clean the Zip File Data
 print(f"Cleaning ZIP File data")
 
-# First, make a copy of Zip for use later
-ZipTable = Zip[['zip_code', 'city', 'state', 'county']].copy()
+# First, make a copy of Zip for use later. This will help with our imputation of ZIP code
+zipTable = zipFile[['zip_code', 'city', 'state', 'county']].copy()
 
 # Next, replace corrupted data with NaN (missing values) and drop any NaN's in the variable guid
-Zip.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
-Zip.dropna(axis = 0, subset = ['guid'], inplace = True)
+zipFile.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
+zipFile.dropna(axis = 0, subset = ['guid'], inplace = True)
 
-print(f"{len(Zip.index)} records imported into the database")
+print(f"{len(zipFile.index)} records imported into the database")
 
 # STEP 4: Create a reference dataset with non-duplicative zip codes so we can impute missing Zip Codes
-# in our main dataset
 # First, replace all of the corrupted zip codes with NaN (missing value) and drop all of those rows
-ZipTable.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
-ZipTable.dropna(axis = 0, subset = ['zip_code'], inplace = True)
+zipTable.replace(to_replace = r'^[A-Z]{4}$', value=np.nan, regex=True, inplace=True)
+zipTable.dropna(axis = 0, subset = ['zip_code'], inplace = True)
 
 # Finally, sort the data by state, city, county, in that order and create a new variable that strings the first
 # number from the zip code to '0000'. Also, get rid of any duplicates.
-ZipTable.sort_values(by=['state','city','county'], inplace = True)
-ZipTable['NewZip']=ZipTable.zip_code.str[:1]+'0000'
-ZipTable.drop_duplicates(['state','city','county'], keep='last', inplace = True)
+zipTable.sort_values(by=['state','city','county'], inplace = True)
+zipTable['NewZip']=zipTable.zip_code.str[:1]+'0000'
+zipTable.drop_duplicates(['state','city','county'], keep='last', inplace = True)
 
-# Now we have a clean reference dataset from which we can join our other two datasets to obtain zip
-# codes for missing values
+# Now we have a clean reference dataset from which we can join our other two datasets to obtain missing zip codes
 
-# STEP 5: Merge all 3 cleaned files with the ZipTable reference dataset
-HousingZip = Housing.merge(Zip, how = 'outer', on = ['guid', 'zip_code'])
-HousingZipIncome = HousingZip.merge(Income, how = 'outer', on = ['guid', 'zip_code'])
-HousingZipIncome2 = HousingZipIncome.merge(ZipTable, how = 'left', on = ['state', 'city', 'county'])
+# STEP 5: Merge all 3 cleaned files with the zipTable reference dataset
+HousingZip = housingFile.merge(zipFile, how = 'outer', on = ['guid', 'zip_code'])
+HousingZipIncome = HousingZip.merge(incomeFile, how = 'outer', on = ['guid', 'zip_code'])
+HousingZipIncome2 = HousingZipIncome.merge(zipTable, how = 'left', on = ['state', 'city', 'county'])
 
 # Wherever there is a missing value for zip code, replace it with '[0-9]0000'
 HousingZipIncome2.loc[HousingZipIncome2['zip_code_x'].isnull(), 'zip_code_x'] = HousingZipIncome2["NewZip"]
@@ -91,7 +89,6 @@ HousingData = HousingZipIncome2[['id','guid','zip_code', 'city','state','county'
 
 # STEP 6: Import data into our SQL database, housing_project.
 # Using SQLAlchemy create an engine and load data into the table, 'housing'
-
 engine = create_engine('mysql+pymysql://root:XXXXX@localhost/housing_project')
 HousingData.to_sql('housing', engine, if_exists = 'append', index = False)
 print("Import completed")
@@ -99,7 +96,7 @@ print()
 
 print("Beginning validation")
 
-# STEP 7: Create an input for the total number of bedrooms for a given room number
+# STEP 7: Create an input for the total number of bedrooms for a given number of rooms
 print()
 TotalRooms = int(input(f"Total Rooms: "))
 
@@ -110,7 +107,7 @@ myConnection = pymysql.connect(host='localhost',
                                charset='utf8mb4')
 
 cursor = myConnection.cursor()
-roomSQL = """select sum(total_rooms)
+roomSQL = """select sum(total_bedrooms)
                  from housing
                  where total_rooms > %s
               """
@@ -142,3 +139,5 @@ cursor.close()
 myConnection.close()
 
 print(f"The median household income for ZIP code {ZIPCode} is {ZIPResults[0][0]}.")
+print()
+print("Program exiting.")
